@@ -12,6 +12,11 @@
 | D8 | Geography: final GBA 369-ward map (Dec 2025). Study area: Nagasandra + Dodda Bidarakallu (adjacent, West Corporation). | Agreed |
 | D9 | Model B method for real instances: buffered time windows + outer loop. Toy instance uses exact enumeration as ground truth. | Proposed |
 | D10 | Traffic model: leg factor = city factor x ward factor of the leg's end; lognormal, mean 1. Parameters are SYNTHETIC until calibrated. | Proposed |
+| D11 | Model A tie-breaking: distance-optimal plans can tie (toy: 4 tied plans) yet give OPPOSITE ward rankings (toy, traffic x2: A 1.000/B 0.945 vs A 0.945/B 0.972). A baseline "inequity" can therefore be an artefact of which tied/near-tied plan the solver returns. Safeguard: report Model A as best-of-several OR-Tools runs AND show the reliability spread over its near-optimal plans. | Proposed |
+| D12 | Real-area points (D5 implemented): collection streets (residential, tertiary, etc.; NOT motorway/trunk) inside each ward; length-weighted k-means; 60 points split by ward population (30/30); each point = a real junction inside its own ward. Demand = ward population shared by street length / 4.0 persons per household. | Proposed |
+| D13 | Window = contractual household period 06:30-11:00 (SOURCED, BBMP/BSWML scope). Capacity = 1000 households per auto tipper (SOURCED norm). Fleet available = norm + 1 (14); best plan uses 13. | Proposed |
+| D14 | **OPEN - blocks M3.** With D13, travel is only 6% of an auto tipper's working time; all travel must be 6x slower before 1 of 60 stops misses 11:00. Travel-time randomness alone therefore cannot produce a ward reliability gap in this design. Team must choose how uncertainty / on-time is defined before Model B (see README "Decision needed"). | **Team to decide** |
 
 ## Change history
 - 2026-11-18: M1 toy pipeline built and tested.
+- 2026-11-18: M2 built. OR-Tools Model A matches exact optimum on 41/41 tiny instances. Real-area instance (60 points, 12,686 HH, travel-time matrix) built. Depot still PLACEHOLDER. Finding D14 raised.

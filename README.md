@@ -5,15 +5,15 @@ Team: Abel Mathews, Aliya Zuha, Aniket Agarwal. Guide: Dr. Vinay K.
 
 **Question:** If waste trucks are routed only to minimise distance, do some wards get late collection more often when traffic is unpredictable? Can a reliability-aware planner close that gap without adding much distance?
 
-> **Data honesty.** Everything is a simulation. Road network and ward boundaries are real (OBSERVED). Stops, waste amounts, time windows, fleet and traffic randomness are SYNTHETIC. No result here describes actual GBA/BBMP collection performance.
+> **Data honesty.** Every parameter is labelled OBSERVED / SOURCED / DERIVED / ASSUMED in `data/config/real_area.json`. Road network and ward boundaries are OBSERVED. Window and fleet norm are SOURCED. Point placement and demand are DERIVED. Speeds, household size and service time are ASSUMED until calibrated. Traffic randomness is SYNTHETIC. The depot is a PLACEHOLDER until `data/raw/facilities.json` is filled. No result here describes actual GBA/BBMP collection performance.
 
 ## Status
 
 | Milestone | What | Status |
 |---|---|---|
 | M1 | Toy end-to-end: 6 stops, 2 wards, 2 trucks, exact solver, traffic simulator, reliability metrics | **Done** |
-| M2 | OR-Tools Model A, checked against M1 exact answers; real road network for Nagasandra + Dodda Bidarakallu | Next |
-| M3 | Model B on the real area (buffered windows + outer loop) | — |
+| M2 | OR-Tools Model A, checked against M1 exact answers; real road network for Nagasandra + Dodda Bidarakallu | **Done** (depot = placeholder until facilities.json) |
+| M3 | Model B on the real area (buffered windows + outer loop) | Blocked on decision D14 |
 | M4 | Model C: dynamic re-plan at 08:00 | — |
 | M5 | Experiments, sensitivity, figures | — |
 
@@ -21,9 +21,26 @@ Team: Abel Mathews, Aliya Zuha, Aniket Agarwal. Guide: Dr. Vinay K.
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q              # 6 tests should pass
-python -m experiments.run_toy    # prints the M1 table, writes results/tables/toy_m1.csv
+python -m pytest -q              # 51 tests should pass (~45 s)
+python -m experiments.run_toy    # M1 table -> results/tables/toy_m1.csv
+python -m experiments.run_m2     # M2 (~4 min): solver check, real instance, map, stress test
 ```
+
+## M2 results (2026-11-18)
+
+**Solver check.** OR-Tools Model A gives the exact optimum on the toy and on 40 random tiny instances (41/41; 8 infeasible, both agree). Table: `results/tables/m2_ortools_vs_exact.csv`.
+
+**Real area.** 60 collection points on real Nagasandra + Dodda Bidarakallu streets (30 each, split by population), 12,686 households, full one-way-aware travel-time matrix. Median network speed 16.6 km/h (TomTom 2025 city average is also 16.6 km/h). Dodda Bidarakallu has 95 km of collection streets vs 42 km in Nagasandra for a similar population, so its points are more spread out. Files: `data/derived/`, map `results/figures/m2_real_points_and_model_a.png`.
+
+**Model A on the real area (PLACEHOLDER depot, so not a result):** best 57.7 km with 13-14 auto tippers; different search settings differ by up to 10.7% in distance, so Model A must be best-of-several runs (`m2_real_model_a_stability.csv`).
+
+### Decision needed (D14) before Model B
+
+Travel is only **6%** of an auto tipper's working day; 94% is door-to-door service. Every road leg must be **6x slower** before one stop misses 11:00 (`m2_travel_stress_test.csv`). So random traffic alone cannot create a ward reliability gap here, and the A-vs-B comparison would show nothing. Options:
+
+1. **Recommended:** keep CVRPTW, but (a) make the uncertain parts the ones that really vary: start delay, service time per household, travel; and (b) score "on time" against a **published collection slot** per point (e.g. 60 min), which is what residents feel ("arrival times are inconsistent"). Needs field data: daily auto-tipper arrival times at a few homes for ~2 weeks.
+2. Keep the 06:30-11:00 window and only travel randomness: honest but almost certainly a null result.
+3. Switch to the compactor layer (transfer point -> processing plant), where travel dominates. Needs transfer-point locations; fewer stops per ward.
 
 ## How the model works (simple version)
 
@@ -44,6 +61,10 @@ src/instance.py          load an instance, build distance & time matrices
 src/traffic.py           seeded traffic scenarios (TRAIN seed 1001, TEST seed 2002)
 src/evaluate.py          simulate a plan, compute p_i, R_w, gap, min_R, minutes late
 src/enumerate_solver.py  exact solver for tiny instances (tries all 2,520 plans)
+src/ortools_solver.py    Model A with OR-Tools (any size), float re-check of every plan
+src/real_instance.py     real wards + OSM roads -> collection points + travel-time matrix
+data/config/real_area.json  every real-area parameter with its source label
+experiments/run_m2.py    M2 experiment
 experiments/run_toy.py   M1 experiment
 tests/test_toy.py        acceptance tests
 docs/decision_log.md     every modelling decision and why

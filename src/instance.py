@@ -22,10 +22,17 @@ class Instance:
     dist_km: np.ndarray       # (n+1, n+1)
     base_min: np.ndarray      # (n+1, n+1) travel minutes with NO traffic
     traffic: dict             # traffic parameters
+    end_node: int = 0         # where routes end (0 = back to depot; real area may end at a transfer point)
+    meta: dict = None         # provenance: node ids, coordinates, labels
+
+    @property
+    def stops(self):
+        """Collection points: every node except the depot (0) and a separate end node."""
+        return [i for i in range(1, self.n + 1) if i != self.end_node]
 
     @property
     def wards(self):
-        return sorted(set(self.ward[1:]))
+        return sorted(set(self.ward[1:]) - {"depot", "end"})
 
 
 def load_toy(path):
