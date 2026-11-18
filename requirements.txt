@@ -1,0 +1,8 @@
+# Tested with Python 3.13 (3.11+ should work)
+numpy==2.5.3
+pandas==3.0.5
+networkx==3.7
+osmnx==2.1.2
+geopandas==1.2.0
+ortools==9.15.6755
+pytest==9.1.1
