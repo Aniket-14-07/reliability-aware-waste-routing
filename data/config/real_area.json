@@ -1,0 +1,145 @@
+{
+  "_about": "Parameters for the real-area instance (Nagasandra + Dodda Bidarakallu). Every value has a label: OBSERVED (from a dataset), SOURCED (from a published document, see 'source'), DERIVED (computed from other values), ASSUMED (our choice, must be sensitivity-tested or replaced).",
+  "wards": {
+    "value": [
+      {
+        "corporation": "West",
+        "ward_id": "1",
+        "name": "Nagasandra"
+      },
+      {
+        "corporation": "West",
+        "ward_id": "11",
+        "name": "Dodda Bidarakallu"
+      }
+    ],
+    "label": "OBSERVED",
+    "source": "data/raw/gba-369-wards-december-2025.kml"
+  },
+  "n_points_total": {
+    "value": 60,
+    "label": "ASSUMED",
+    "note": "Within the agreed 40-80 range. Split between wards in proportion to ward population (TOT_P). Sensitivity: 40 and 80."
+  },
+  "collection_road_types": {
+    "value": [
+      "residential",
+      "living_street",
+      "unclassified",
+      "tertiary",
+      "tertiary_link",
+      "secondary",
+      "secondary_link",
+      "primary",
+      "primary_link",
+      "road"
+    ],
+    "label": "ASSUMED",
+    "note": "Door-to-door collection happens on streets with house frontage. Excluded: motorway, trunk and their links (NH-48/Tumkur Road, NICE Road) - vehicles travel on them but do not collect there."
+  },
+  "speed_kmph_by_road_type": {
+    "value": {
+      "residential": 15,
+      "living_street": 10,
+      "unclassified": 15,
+      "road": 15,
+      "tertiary": 20,
+      "tertiary_link": 20,
+      "secondary": 22,
+      "secondary_link": 22,
+      "primary": 25,
+      "primary_link": 25,
+      "trunk": 30,
+      "trunk_link": 25,
+      "motorway": 40,
+      "motorway_link": 30
+    },
+    "label": "ASSUMED",
+    "note": "Base (no-surprise) morning speed of a loaded collection vehicle. Only 84 of 14,837 OSM edges have maxspeed, and posted limits are not travel speeds. Sanity anchor: TomTom Traffic Index 2025, Bengaluru: city average 16.6 km/h, morning rush 14.6 km/h, free-flow ~29 km/h (2 min 4 s per km). TO BE REPLACED by calibration (scripts/calibrate_travel_times.py)."
+  },
+  "time_origin": {
+    "value": "06:30",
+    "label": "SOURCED",
+    "source": "BBMP/BSWML service-provider scope (OpenCity): door-to-door collection from households to begin no later than 6:30 AM.",
+    "note": "BBMP (Aug 2025) fixed auto-tipper mustering at 5:30-6:30 am (previously 6:00-7:30), so collection starts ~06:30. Deccan Herald reports door-to-door from ~7:30 in practice -> modelled as a random start delay (see uncertainty)."
+  },
+  "household_window_min": {
+    "value": [
+      0,
+      270
+    ],
+    "label": "SOURCED",
+    "source": "Same scope document: commercial collection to begin preferably at 11:00 AM, after households are done. So households = 06:30-11:00 = minutes 0-270.",
+    "note": "On time = service starts by 11:00. This is the contractual window, not a citizen-promised slot."
+  },
+  "household_size": {
+    "value": 3.71,
+    "label": "DERIVED (Census 2011)",
+    "source": "Census 2011 households and population of the four old BBMP wards that cover the study area (14 Bagalagunte 17,117 HH / 65,113; 15 T. Dasarahalli 8,849 / 33,042; 39 Chokkasandra 16,537 / 59,289; 40 Dodda Bidarakallu 19,506 / 72,794): 230,238 / 62,009 = 3.71 persons per household. Table: Wikipedia 'List of wards in Bangalore (2009-2023)', citing BBMP ward data.",
+    "note": "Cross-check against Census 2011 Primary Census Abstract if the guide asks."
+  },
+  "vehicle_capacity_households": {
+    "value": 1000,
+    "label": "SOURCED",
+    "source": "BPAC roundtable (BBMP data): one auto tipper per 1000 households. OpenCity BBMP SWM doc: one per 750-household block. Sensitivity: 750.",
+    "note": "BBMP Time & Motion Study (2015, BBMP + KUIDFC/iDeCK): auto tipper 500 kg (475 kg wet + 25 kg sanitary drum). Microplan 2017: one auto tipper per 750-household block. We keep 1000 HH as the per-shift workload norm; 750 is a sensitivity case."
+  },
+  "service_min_per_household": {
+    "value": 0.2,
+    "label": "ASSUMED",
+    "note": "Implied ceiling from the norms: 270 min / 1000 HH = 0.27 min per HH including driving inside the street segment. 0.2 leaves ~25% of the shift for travel between points. Replace with field timing if the team can observe one auto tipper."
+  },
+  "population_field": {
+    "value": "TOT_P",
+    "label": "OBSERVED",
+    "note": "Appears to be Census-2011-based, so absolute counts are likely below today's. Only the SPLIT of demand between points and wards depends on it if we size the fleet from the same numbers; absolute load is a known limitation."
+  },
+  "depot": {
+    "value": null,
+    "label": "MISSING",
+    "note": "Auto-tipper mustering point for these wards. Fill data/raw/facilities.json (see data/raw/facilities_TEMPLATE.json). Until then a clearly-labelled PLACEHOLDER is used for pipeline tests only - no results may be reported from it."
+  },
+  "random_seed": {
+    "value": 42,
+    "label": "ASSUMED",
+    "note": "k-means seed for reproducible point placement"
+  },
+  "fleet_extra": {
+    "value": 1,
+    "label": "DERIVED (team to confirm)",
+    "note": "Fleet AVAILABLE = ceil(households / capacity) + fleet_extra. With the norm alone (13 x 1000 HH for 12,686 HH = 97.6% full) OR-Tools found no plan in 60 s from scratch (packing is hard; time is NOT binding - 9 trucks suffice without the capacity limit). With 14 available, the best plan found (120 s) uses only 13 trucks, i.e. the norm IS feasible. So +1 is search room, not a bigger fleet. Alternative to discuss: multi-trip auto tippers (needs the transfer point)."
+  },
+  "traffic": {
+    "value": {
+      "global_sigma": 0.2,
+      "ward_sigma": {
+        "Nagasandra": 0.15,
+        "Dodda Bidarakallu": 0.15
+      }
+    },
+    "label": "ASSUMED (no public Bengaluru data on day-to-day variability)",
+    "note": "Ward sigmas deliberately EQUAL so any ward gap comes from geography/plans, not from our assumption. Intensity x2 tested."
+  },
+  "uncertainty": {
+    "value": {
+      "start_delay_max": 60,
+      "cv_truck": 0.15,
+      "cv_point": 0.2
+    },
+    "label": "ASSUMED, bounded by sources; full sensitivity grid reported",
+    "note": "start delay ~ Uniform(0,U): U=60 spans the gap between the contractual 06:30 start and the ~07:30 start reported by Deccan Herald. Service-time CVs: no public Bengaluru time-and-motion variability figures; waste-collection GPS studies report positively skewed, highly variable service/facility times. Grid: U in {30,60,90}, CV x{0.5,1,1.5}."
+  },
+  "slot_width_min": {
+    "value": 60,
+    "label": "ASSUMED",
+    "note": "Published collection slot width. Sensitivity 30 and 90."
+  },
+  "n_train_days": {
+    "value": 500,
+    "label": "DESIGN"
+  },
+  "n_test_days": {
+    "value": 2000,
+    "label": "DESIGN"
+  }
+}

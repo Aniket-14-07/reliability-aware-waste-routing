@@ -14,8 +14,11 @@ import numpy as np
 
 def plan_distance(inst, plan):
     d = 0.0
+    end = getattr(inst, "end_node", 0)      # real instances may end at a transfer point
     for route in plan:
-        path = [0] + list(route) + [0]
+        if not route:
+            continue                         # unused truck drives nowhere
+        path = [0] + list(route) + [end]
         d += sum(inst.dist_km[a, b] for a, b in zip(path[:-1], path[1:]))
     return d
 
@@ -48,7 +51,7 @@ def simulate(inst, plan, F):
 def metrics(inst, plan, F):
     """Stop-level p_i, ward-level R_w, gap G, min R_w, and mean minutes late."""
     on_time, start = simulate(inst, plan, F)
-    stops = np.arange(1, inst.n + 1)
+    stops = np.array(inst.stops)
     p = on_time[:, stops].mean(axis=0)                     # p_i for i = 1..n
     late_min = np.maximum(start[:, stops] - inst.win_end[stops], 0).mean(axis=0)
     R = {}

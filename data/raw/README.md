@@ -6,3 +6,7 @@
 | `nagasandra_dbk_drive.graphml` | OpenStreetMap via OSMnx 2.x, `graph_from_bbox((77.47502, 13.00929, 77.51505, 13.05608), network_type="drive")` | 18 Nov 2026 | ODbL (© OpenStreetMap contributors) | Nagasandra + Dodda Bidarakallu wards + 500 m buffer. 5,901 nodes, 14,837 directed edges, 895 km of edge length; largest strongly connected component = 5,868 nodes. Only 84 edges carry `maxspeed`, so speeds will be imputed (DERIVED). |
 
 Not used: the 225-ward KML (old BBMP delimitation, superseded), the draft-delimitation population CSV (draft numbers differ from final), and the processing-plant CSV (no coordinates or date).
+
+## Facility locations (MISSING - needed from the team)
+
+Copy `facilities_TEMPLATE.json` to `facilities.json` and fill in the auto-tipper mustering point (depot) and the secondary transfer point, with how you confirmed each. Context from the press: Doddabidarakallu itself hosts one of BBMP's seven waste-processing plants (~11 acres, RR Nagar zone), but that is where compactors go, not auto tippers. OSM/Nominatim could not be queried from the build environment, so no coordinates have been taken from maps yet.

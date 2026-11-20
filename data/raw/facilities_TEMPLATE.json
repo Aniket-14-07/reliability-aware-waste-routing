@@ -1,0 +1,21 @@
+{
+  "_how_to_fill": "Copy to data/raw/facilities.json. Get lat/lon from Google Maps: long-press the exact spot -> the first line is 'lat, lon'. Record HOW you know (asked a pourakarmika / ward office / saw it yourself) and the date. One entry per facility you can confirm. Leave a field null if unknown - do not guess.",
+
+  "depot": {
+    "what": "Where auto tippers for Nagasandra + Dodda Bidarakallu muster (start) in the morning",
+    "lat": null, "lon": null,
+    "evidence": "e.g. 'asked auto-tipper driver on 19 Nov 2026, 6:15 am'",
+    "date_checked": null
+  },
+  "transfer_point": {
+    "what": "Secondary transfer point where auto tippers empty into compactors (end of route)",
+    "lat": null, "lon": null,
+    "evidence": null, "date_checked": null
+  },
+  "processing_plant": {
+    "what": "Doddabidarakallu waste processing plant (BBMP, ~11 acres, RR Nagar zone). Context only: compactors go here, not auto tippers.",
+    "lat": null, "lon": null,
+    "evidence": "Google Maps pin of the plant gate",
+    "date_checked": null
+  }
+}

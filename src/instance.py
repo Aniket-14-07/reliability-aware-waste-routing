@@ -22,10 +22,17 @@ class Instance:
     dist_km: np.ndarray       # (n+1, n+1)
     base_min: np.ndarray      # (n+1, n+1) travel minutes with NO traffic
     traffic: dict             # traffic parameters
+    end_node: int = 0         # where routes end (0 = back to depot; real area may end at a transfer point)
+    meta: dict = None         # provenance: node ids, coordinates, labels
+
+    @property
+    def stops(self):
+        """Collection points: every node except the depot (0) and a separate end node."""
+        return [i for i in range(1, self.n + 1) if i != self.end_node]
 
     @property
     def wards(self):
-        return sorted(set(self.ward[1:]))
+        return sorted(set(self.ward[1:]) - {"depot", "end"})
 
 
 def load_toy(path):
@@ -54,3 +61,24 @@ def load_toy(path):
         capacity=cfg["vehicles"]["capacity"], n_vehicles=cfg["vehicles"]["count"],
         dist_km=dist, base_min=base_min, traffic=cfg["traffic"],
     )
+
+
+def ward_subset(inst, ward, n_vehicles=None, capacity=None):
+    """Instance for ONE ward: its own depot (node 0), its own points, its own fleet.
+    Bengaluru operates ward-wise (ward-wise tenders; auto tippers stay in their microplan block),
+    so trucks do not cross ward boundaries (decision D16)."""
+    import math
+    import numpy as np
+    keep = [0] + [i for i in inst.stops if inst.ward[i] == ward]
+    ix = np.ix_(keep, keep)
+    cap = capacity or inst.capacity
+    hh = int(inst.demand[keep].sum())
+    sub = Instance(
+        n=len(keep) - 1, ward=[inst.ward[i] for i in keep],
+        demand=inst.demand[keep], service=inst.service[keep],
+        win_start=inst.win_start[keep], win_end=inst.win_end[keep],
+        capacity=cap, n_vehicles=n_vehicles or math.ceil(hh / cap),
+        dist_km=inst.dist_km[ix], base_min=inst.base_min[ix], traffic=inst.traffic,
+        end_node=0, meta={"parent_index": keep, "ward": ward, "households": hh},
+    )
+    return sub

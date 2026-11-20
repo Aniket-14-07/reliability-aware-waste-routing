@@ -1,0 +1,13 @@
+scenario,ward,model,R,R_ci95,R_hh,min_p,p10_p,first_stop_p,last_stop_p,position_gap,late_mean_min,late_p95_worst_point,slot_end_after_11,slot_updates_per_day,distance_km,depot
+base,Dodda Bidarakallu,A,0.6246,0.0061,0.6311,0.491,0.501,0.931,0.578,0.353,8.08,62.4,0.0,0.0,,PLACEHOLDER
+base,Dodda Bidarakallu,B,0.8931,0.0038,0.9001,0.778,0.8,0.985,0.833,0.152,1.75,34.7,0.0,0.0,,PLACEHOLDER
+base,Dodda Bidarakallu,C,0.929,0.0029,0.9325,0.837,0.88,0.985,0.89,0.095,0.94,22.4,0.0,9.6,,PLACEHOLDER
+base,Dodda Bidarakallu,B-A (paired),0.2685,0.0049,,,,,,,,,,,,PLACEHOLDER
+base,Dodda Bidarakallu,C-B (paired),0.0358,0.0023,,,,,,,,,,,,PLACEHOLDER
+base,Dodda Bidarakallu,B on balanced routes,0.8997,0.0037,0.9024,0.814,0.821,0.983,0.829,0.154,1.44,27.6,0.0,0.0,38.72,PLACEHOLDER
+base,Nagasandra,A,0.6132,0.0064,0.6251,0.491,0.501,0.936,0.524,0.412,8.43,64.4,0.0,0.0,,PLACEHOLDER
+base,Nagasandra,B,0.8896,0.004,0.895,0.773,0.807,0.987,0.81,0.177,1.87,36.5,0.0,0.0,,PLACEHOLDER
+base,Nagasandra,C,0.9183,0.0032,0.9213,0.799,0.866,0.987,0.87,0.117,1.13,29.3,0.0,9.7,,PLACEHOLDER
+base,Nagasandra,B-A (paired),0.2765,0.0053,,,,,,,,,,,,PLACEHOLDER
+base,Nagasandra,C-B (paired),0.0287,0.0022,,,,,,,,,,,,PLACEHOLDER
+base,Nagasandra,B on balanced routes,0.8993,0.0037,0.8961,0.766,0.826,0.987,0.817,0.17,1.51,33.1,0.0,0.0,25.71,PLACEHOLDER
