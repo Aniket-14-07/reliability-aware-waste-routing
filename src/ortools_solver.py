@@ -6,7 +6,7 @@ Same model as the exact solver (src/enumerate_solver.py), but scales to real ins
                (truck waits if early, decision D4), using base (no-surprise) travel times.
 
 OR-Tools works in integers, so we scale:
-    distance  : metres (km x 1000, rounded)       -> objective error <= 0.5 m per leg
+    distance  : millimetres (km x 1e6, rounded)    -> objective error <= 0.5 mm per leg
     time      : 1/1000 minute, travel rounded UP   -> never accepts a plan that is late in float time
 Every returned plan is re-checked with the float simulator in src/evaluate.py.
 
@@ -21,7 +21,7 @@ from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
 from src.evaluate import is_capacity_ok, plan_distance, simulate
 
-DIST_SCALE = 1000      # km -> m
+DIST_SCALE = 1_000_000  # km -> mm (fine grid so a balancing cost can be in m per minute)
 TIME_SCALE = 1000      # min -> 1/1000 min
 
 
@@ -31,7 +31,7 @@ def _int_matrix(m, scale, up=False):
 
 
 def solve_model_a(inst, time_limit_s=10, first_solution="PATH_CHEAPEST_ARC",
-                  metaheuristic="GUIDED_LOCAL_SEARCH", time_window_end=None):
+                  metaheuristic="GUIDED_LOCAL_SEARCH", time_window_end=None, span_m_per_min=0):
     """Return (plan, info). plan = list of routes (stop ids), or None if no feasible plan found.
 
     time_window_end: optional array overriding inst.win_end (used later by Model B's buffered windows).
@@ -72,6 +72,11 @@ def solve_model_a(inst, time_limit_s=10, first_solution="PATH_CHEAPEST_ARC",
     # slack = waiting allowed (up to the horizon); cumul at a stop = service START time
     routing.AddDimension(t_idx, horizon, horizon, False, "Time")
     time_dim = routing.GetDimensionOrDie("Time")
+    if span_m_per_min:
+        # Model B lever: penalise the latest route finish (makespan) -> balanced routes, so no
+        # truck accumulates a long chain of delays. Cost = span_m_per_min metres per minute.
+        # 1 time unit = 1/1000 min and 1 distance unit = 1 mm, so coefficient = metres/min.
+        time_dim.SetGlobalSpanCostCoefficient(int(span_m_per_min))
     for node in range(1, n_nodes):
         if node == end_node:
             continue
@@ -109,7 +114,7 @@ def solve_model_a(inst, time_limit_s=10, first_solution="PATH_CHEAPEST_ARC",
         j for j in range(1, n_nodes) if j != end_node]
     return plan, {
         "status": "ok" if ok else "FAILED FLOAT RE-CHECK",
-        "objective_m": sol.ObjectiveValue(),
+        "objective": sol.ObjectiveValue(),
         "distance_km": plan_distance(inst, plan),
         "trucks_used": sum(1 for r in plan if r),
     }

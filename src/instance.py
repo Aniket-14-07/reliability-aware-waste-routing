@@ -61,3 +61,24 @@ def load_toy(path):
         capacity=cfg["vehicles"]["capacity"], n_vehicles=cfg["vehicles"]["count"],
         dist_km=dist, base_min=base_min, traffic=cfg["traffic"],
     )
+
+
+def ward_subset(inst, ward, n_vehicles=None, capacity=None):
+    """Instance for ONE ward: its own depot (node 0), its own points, its own fleet.
+    Bengaluru operates ward-wise (ward-wise tenders; auto tippers stay in their microplan block),
+    so trucks do not cross ward boundaries (decision D16)."""
+    import math
+    import numpy as np
+    keep = [0] + [i for i in inst.stops if inst.ward[i] == ward]
+    ix = np.ix_(keep, keep)
+    cap = capacity or inst.capacity
+    hh = int(inst.demand[keep].sum())
+    sub = Instance(
+        n=len(keep) - 1, ward=[inst.ward[i] for i in keep],
+        demand=inst.demand[keep], service=inst.service[keep],
+        win_start=inst.win_start[keep], win_end=inst.win_end[keep],
+        capacity=cap, n_vehicles=n_vehicles or math.ceil(hh / cap),
+        dist_km=inst.dist_km[ix], base_min=inst.base_min[ix], traffic=inst.traffic,
+        end_node=0, meta={"parent_index": keep, "ward": ward, "households": hh},
+    )
+    return sub

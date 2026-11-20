@@ -218,7 +218,7 @@ def build(cfg_path="data/config/real_area.json", facilities_path=None, traffic=N
         win_end=np.array([1e6] + [win[1]] * n + [1e6] * extra, dtype=float),
         capacity=int(cap),
         n_vehicles=int(math.ceil(total_hh / cap)) + int(_v(cfg, "fleet_extra")),
-        dist_km=D, base_min=T, traffic=traffic or {},
+        dist_km=D, base_min=T, traffic=traffic or _v(cfg, "traffic"),
         end_node=(n + 1) if extra else 0,
         meta={"depot_osm": depot, "depot_label": depot_label, "nodes": nodes,
               "points_per_ward": k, "unknown_road_types": unknown,

@@ -13,7 +13,7 @@ Team: Abel Mathews, Aliya Zuha, Aniket Agarwal. Guide: Dr. Vinay K.
 |---|---|---|
 | M1 | Toy end-to-end: 6 stops, 2 wards, 2 trucks, exact solver, traffic simulator, reliability metrics | **Done** |
 | M2 | OR-Tools Model A, checked against M1 exact answers; real road network for Nagasandra + Dodda Bidarakallu | **Done** (depot = placeholder until facilities.json) |
-| M3 | Model B on the real area (buffered windows + outer loop) | Blocked on decision D14 |
+| M3 | Published slots under uncertainty: Models A, B, C on the real area + sensitivity | **Done** (depot = placeholder) |
 | M4 | Model C: dynamic re-plan at 08:00 | — |
 | M5 | Experiments, sensitivity, figures | — |
 
@@ -21,9 +21,10 @@ Team: Abel Mathews, Aliya Zuha, Aniket Agarwal. Guide: Dr. Vinay K.
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q              # 51 tests should pass (~45 s)
+python -m pytest -q              # 56 tests should pass (~45 s)
 python -m experiments.run_toy    # M1 table -> results/tables/toy_m1.csv
 python -m experiments.run_m2     # M2 (~4 min): solver check, real instance, map, stress test
+python -m experiments.run_m3     # M3 (~12 min): slots, Models A/B/C, sensitivity
 ```
 
 ## M2 results (2026-11-18)
@@ -34,13 +35,26 @@ python -m experiments.run_m2     # M2 (~4 min): solver check, real instance, map
 
 **Model A on the real area (PLACEHOLDER depot, so not a result):** best 57.7 km with 13-14 auto tippers; different search settings differ by up to 10.7% in distance, so Model A must be best-of-several runs (`m2_real_model_a_stability.csv`).
 
-### Decision needed (D14) before Model B
+### D14 resolved -> option 1 (see M3)
 
-Travel is only **6%** of an auto tipper's working day; 94% is door-to-door service. Every road leg must be **6x slower** before one stop misses 11:00 (`m2_travel_stress_test.csv`). So random traffic alone cannot create a ward reliability gap here, and the A-vs-B comparison would show nothing. Options:
+## M3 results (2026-11-20) - published collection slots
 
-1. **Recommended:** keep CVRPTW, but (a) make the uncertain parts the ones that really vary: start delay, service time per household, travel; and (b) score "on time" against a **published collection slot** per point (e.g. 60 min), which is what residents feel ("arrival times are inconsistent"). Needs field data: daily auto-tipper arrival times at a few homes for ~2 weeks.
-2. Keep the 06:30-11:00 window and only travel randomness: honest but almost certainly a null result.
-3. Switch to the compactor layer (transfer point -> processing plant), where travel dominates. Needs transfer-point locations; fewer stops per ward.
+Travel is ~6% of an auto tipper's day, so the question became: **how often does the truck arrive by the end of the slot it promised?** Each ward runs its own fleet (D16). All three models use the same distance-first routes; only the slot rule differs (D17). 2,000 test days, common random numbers, 95% CIs.
+
+| Ward | A timetable | B simulation-based | C + 08:00 update | first stop (B) | last stop (B) |
+|---|---|---|---|---|---|
+| Dodda Bidarakallu (8 trucks) | 0.625 | 0.893 | 0.929 | 0.985 | 0.833 |
+| Nagasandra (7 trucks) | 0.613 | 0.890 | 0.918 | 0.987 | 0.810 |
+
+Paired gains: B-A = +0.27 (CI +/-0.005), C-B = +0.03 (CI +/-0.002) in both wards.
+
+Findings (all PLACEHOLDER depot; depot sensitivity shows <=0.03 change):
+1. **Most of the gain comes from how slots are set, not from routing.** Makespan-balanced routes change B by <=0.01.
+2. **A's low score is mostly bias:** its timetable ignores the average start delay. With start delay up to 30 min instead of 60, A rises to 0.83 (B 0.92).
+3. **No meaningful ward gap** (<=2.9 points in every case). **Unreliability is positional:** later stops in a route are less reliable (B: 0.98 first vs 0.81-0.83 last). C narrows this.
+4. Ordering A < B < C holds in all 9 sensitivity cases (`results/tables/m3_sensitivity.csv`).
+
+Figure: `results/figures/m3_reliability_by_position.png`. Questions for the guide: `docs/questions_for_guide.md`.
 
 ## How the model works (simple version)
 
@@ -62,6 +76,7 @@ src/traffic.py           seeded traffic scenarios (TRAIN seed 1001, TEST seed 20
 src/evaluate.py          simulate a plan, compute p_i, R_w, gap, min_R, minutes late
 src/enumerate_solver.py  exact solver for tiny instances (tries all 2,520 plans)
 src/ortools_solver.py    Model A with OR-Tools (any size), float re-check of every plan
+src/slots.py             slot model, uncertainty, Models A/B/C scoring
 src/real_instance.py     real wards + OSM roads -> collection points + travel-time matrix
 data/config/real_area.json  every real-area parameter with its source label
 experiments/run_m2.py    M2 experiment

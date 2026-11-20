@@ -61,7 +61,7 @@
     "value": "06:30",
     "label": "SOURCED",
     "source": "BBMP/BSWML service-provider scope (OpenCity): door-to-door collection from households to begin no later than 6:30 AM.",
-    "note": "Deccan Herald (2025) reports mustering 5:30-6:30 and door-to-door from 7:30 in practice. Sensitivity: 07:30 start."
+    "note": "BBMP (Aug 2025) fixed auto-tipper mustering at 5:30-6:30 am (previously 6:00-7:30), so collection starts ~06:30. Deccan Herald reports door-to-door from ~7:30 in practice -> modelled as a random start delay (see uncertainty)."
   },
   "household_window_min": {
     "value": [
@@ -73,14 +73,16 @@
     "note": "On time = service starts by 11:00. This is the contractual window, not a citizen-promised slot."
   },
   "household_size": {
-    "value": 4.0,
-    "label": "ASSUMED",
-    "note": "Persons per household. Must be checked against Census 2011 (Bangalore urban). Sensitivity: 3.5 and 4.5."
+    "value": 3.71,
+    "label": "DERIVED (Census 2011)",
+    "source": "Census 2011 households and population of the four old BBMP wards that cover the study area (14 Bagalagunte 17,117 HH / 65,113; 15 T. Dasarahalli 8,849 / 33,042; 39 Chokkasandra 16,537 / 59,289; 40 Dodda Bidarakallu 19,506 / 72,794): 230,238 / 62,009 = 3.71 persons per household. Table: Wikipedia 'List of wards in Bangalore (2009-2023)', citing BBMP ward data.",
+    "note": "Cross-check against Census 2011 Primary Census Abstract if the guide asks."
   },
   "vehicle_capacity_households": {
     "value": 1000,
     "label": "SOURCED",
-    "source": "BPAC roundtable (BBMP data): one auto tipper per 1000 households. OpenCity BBMP SWM doc: one per 750-household block. Sensitivity: 750."
+    "source": "BPAC roundtable (BBMP data): one auto tipper per 1000 households. OpenCity BBMP SWM doc: one per 750-household block. Sensitivity: 750.",
+    "note": "BBMP Time & Motion Study (2015, BBMP + KUIDFC/iDeCK): auto tipper 500 kg (475 kg wet + 25 kg sanitary drum). Microplan 2017: one auto tipper per 750-household block. We keep 1000 HH as the per-shift workload norm; 750 is a sensitivity case."
   },
   "service_min_per_household": {
     "value": 0.2,
@@ -106,5 +108,38 @@
     "value": 1,
     "label": "DERIVED (team to confirm)",
     "note": "Fleet AVAILABLE = ceil(households / capacity) + fleet_extra. With the norm alone (13 x 1000 HH for 12,686 HH = 97.6% full) OR-Tools found no plan in 60 s from scratch (packing is hard; time is NOT binding - 9 trucks suffice without the capacity limit). With 14 available, the best plan found (120 s) uses only 13 trucks, i.e. the norm IS feasible. So +1 is search room, not a bigger fleet. Alternative to discuss: multi-trip auto tippers (needs the transfer point)."
+  },
+  "traffic": {
+    "value": {
+      "global_sigma": 0.2,
+      "ward_sigma": {
+        "Nagasandra": 0.15,
+        "Dodda Bidarakallu": 0.15
+      }
+    },
+    "label": "ASSUMED (no public Bengaluru data on day-to-day variability)",
+    "note": "Ward sigmas deliberately EQUAL so any ward gap comes from geography/plans, not from our assumption. Intensity x2 tested."
+  },
+  "uncertainty": {
+    "value": {
+      "start_delay_max": 60,
+      "cv_truck": 0.15,
+      "cv_point": 0.2
+    },
+    "label": "ASSUMED, bounded by sources; full sensitivity grid reported",
+    "note": "start delay ~ Uniform(0,U): U=60 spans the gap between the contractual 06:30 start and the ~07:30 start reported by Deccan Herald. Service-time CVs: no public Bengaluru time-and-motion variability figures; waste-collection GPS studies report positively skewed, highly variable service/facility times. Grid: U in {30,60,90}, CV x{0.5,1,1.5}."
+  },
+  "slot_width_min": {
+    "value": 60,
+    "label": "ASSUMED",
+    "note": "Published collection slot width. Sensitivity 30 and 90."
+  },
+  "n_train_days": {
+    "value": 500,
+    "label": "DESIGN"
+  },
+  "n_test_days": {
+    "value": 2000,
+    "label": "DESIGN"
   }
 }
